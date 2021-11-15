@@ -1,0 +1,326 @@
+#+options: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline author:t
+#+options: broken-links:nil c:nil creator:nil d:(not "LOGBOOK") date:t e:t
+#+options: email:nil f:t inline:t num:t p:nil pri:nil prop:nil stat:t tags:t
+#+options: tasks:t tex:t timestamp:t title:t toc:t todo:t |:t
+#+title: learning haskell
+#+date: <2021-11-06 sáb>
+#+author: Adair Neto
+#+email: adair@arch
+#+language: en
+#+select_tags: export
+#+exclude_tags: noexport
+#+creator: Emacs 27.2 (Org mode 9.4.6)
+
+* Learning Haskell
+
+Testing the Notebook:
+#+begin_src haskell
+putStrLn "Hello, world!"
+#+end_src
+
+** Conditionals
+
+If must always have an else.
+
+Instead of If-Else, we can use Guardaded Equations:
+#+begin_src haskell
+abs n | n >= 0    = n
+      | otherwise = -n
+#+end_src
+
+Wildcard Pattern: `n` means 'anything'.
+
+** List Patterns
+
+"Cons", "(:)", is an operator that constructs a list.
+#+begin_src haskell
+head :: [a] -> a
+head (x:_) = x
+  
+tail :: [a] -> [a]
+tail (_:xs) = xs
+#+end_src
+
+** Lambda Expressions
+
+#+begin_src haskell
+\x -> x + x
+#+end_src
+
+Can be used to understand *currying*.
+
+For example, instead of writing:
+#+begin_src haskell
+add :: Int -> Int -> Int
+add x y = x + y
+#+end_src
+
+We can write:
+#+begin_src haskell
+add :: Int -> (Int -> Int)
+add = \x -> (\y -> x + y)
+#+end_src
+
+It's a good practice to use lambda expressions for functions that only appear once.
+#+begin_src haskell
+odds n = map f [0..n-1]
+         where
+           f x = x*2 + 1
+#+end_src
+where `map` applies the function across all the list.
+
+Instead of that
+#+begin_src haskell
+odds n = map (\x -> x*2 + 1) [0..n-1]
+#+end_src
+
+Also, we can create *operators sections*:
+#+begin_src haskell
+(1+) 2
+(1/) 2
+(*2) 2
+(/2) 2
+#+end_src
+
+** List Comprehension
+
+Takes all xs from 1 to 5 and square them.
+#+begin_src haskell
+[x^2 | x <- [1..5]]
+#+end_src
+
+The expression `[1..5]` is called a *generator*.
+
+Cartesian product between $\{1,2,3\}$ and $\{4,5\}$:
+#+begin_src haskell
+[(x,y) | y <- [4,5], x <- [1,2,3]]
+#+end_src
+
+We can use *guards* to restrict the values (like a 'such that').
+
+Example: factors of an integer.
+#+begin_src haskell
+factors :: Int -> [Int]  
+factors n = [x | x <- [1..n], n `mod` x == 0]
+#+end_src
+
+Which we can use to check if a number is prime.
+#+begin_src haskell
+prime :: Int -> Bool
+prime n = factors n == [1,n]
+#+end_src
+
+And then find the first n primes.
+#+begin_src haskell
+primes :: Int -> [Int]
+prime n = [x | x <- [2..n], prime x]
+#+end_src
+
+** Zip Function
+
+#+begin_src haskell
+zip :: [a] -> [b] -> [(a,b)]
+  
+pairs :: [a] -> [(a,a)]
+pairs xs = zip xs (tail xs)  
+    
+sorted :: Ord a => [a] -> Bool
+sorted xs = and [x <= y | (x,y) <- pairs xs]
+
+positions :: Eq a => a -> [a] -> [Int]
+positions x xs = [i | (x',i) <- zip xs [0..], x == x']
+#+end_src
+
+** String Comprehensions
+  
+#+begin_src haskell
+count :: Char -> String -> Int
+count x xs = length [x' | x' <- xs, x == x']
+#+end_src
+
+Scalar product:
+#+begin_src haskell
+sp :: [Int] -> [Int] -> Int
+sp xs ys = sum [xs !! i * ys !! i | i <- [0..n-1]]
+             where n = length xs
+  
+sp xs ys = sum [x * y | (x,y) <- zip xs ys]    
+#+end_src
+
+* Recursive Functions
+
+Simple definition of factorial:
+#+begin_src haskell
+fac :: Int -> Int
+fac n = product [1..n]
+#+end_src
+
+Recursively, we define a *base case* and a *recursive case*.
+#+begin_src haskell
+fac 0 = 1 
+fac n = n * fac (n-1)
+#+end_src
+
+** Recursion on Lists
+
+#+begin_src haskell
+product :: Num a => [a] -> a
+product []     = 1
+product (n:ns) = n * product ns
+#+end_src
+
+#+begin_src haskell
+length :: [a] -> Int
+length []     = 0
+length (_:xs) = 1 + length xs
+#+end_src
+
+#+begin_src haskell
+reverse :: [a] -> [a]
+reverse []     = []
+reverse (x:xs) = reverse xs ++ [x]
+#+end_src
+
+** Multiple Arguments
+
+#+begin_src haskell
+zip :: [a] -> [b] -> [(a,b)]
+zip []     _      = []
+zip _      []     = []
+zip (x:xs) (y:ys) = (x,y) : zip xs ys
+#+end_src
+
+** Quicksort
+
+#+begin_src haskell
+qsort :: Ord a => [a] -> [a]
+qsort []     = []  
+qsort (x:xs) =
+  qsort smaller ++ [x] ++ qsort larger
+  where
+    smaller = [a | a <- xs, a <= x]
+    larger  = [b | b <- xs, b > x]
+#+end_src
+
+* Higher-Order Functions
+
+*Definition:* Takes a function as an argument or returns a function as a result.
+E.g.
+#+begin_src haskell
+twice :: (a -> a) -> a -> a
+twice f x = f (f x)
+#+end_src
+
+** The Map Function
+
+Applies a function to every element of a list.
+#+begin_src haskell
+map :: (a -> b) -> [a] -> [b]
+map f xs = [f x | x <- xs]
+#+end_src
+
+** The Filter Function
+Selects every element from a list that satisfies a predicate.
+#+begin_src haskell
+filter :: (a -> Bool) -> [a] -> [a]
+filter p xs = [x | x <- xs, p x]
+#+end_src
+
+Another way of defining it:
+#+begin_src haskell
+filter p [] = []
+filter p (x:xs)
+  | p x       = x : filter p xs
+  | otherwise = filter p xs
+#+end_src
+
+** The Foldr Function
+Stands for folding for the right. Can define a number of functions.
+#+begin_src haskell
+f [] = v
+f (x:xs) = x `oplus` f xs
+#+end_src
+f maps the empty list to a given value v, and any non-empty list to some arbitrary function `oplus`applied to its head and f of its tail.
+
+Example:
+#+begin_src haskell
+sum []     = 0
+sum (x:xs) = x + sum xs
+#+end_src
+
+Foldr encapsulates this pattern of recursion, give a function `oplus` and value v as arguments.
+Example:
+#+begin_src haskell
+sum = foldr (+) 0
+#+end_src
+
+#+begin_src haskell
+or = foldr (||) False
+and = foldr (&&) True
+#+end_src
+
+*Definition (Foldr).*
+#+begin_src haskell
+foldr :: (a -> b -> b) -> b -> [a] -> b
+foldr f v []     = v
+foldr f v (x:xs) = f x (foldr f v xs)
+#+end_src
+
+Can be thought non-recursively by replacing ":" by a given function and "[]" by a given value.
+For example:
+#+begin_src haskell
+sum [1,2,3] = foldr (+) 0 [1,2,3] = foldr (+) (1:(2:(3:[])))
+            = 1+(2+(3+0)) -- replace each (:) by (+) and [] by 0  
+#+end_src  
+    
+More examples:
+#+begin_src haskell
+length = foldr (\_ n -> 1+n) 0
+reverse = foldr (\x xs -> xs ++ [x]) []  
+(++ ys) = foldr (:) ys    
+#+end_src
+
+Foldr simplifies the process of writing recursive functions on lists. The properties can be proved using algebraic properties, such as *fusion* and *banana split* rule.
+
+** Other Library Functions
+*Function composition:*
+#+begin_src haskell
+(.) :: (b -> c) -> (a -> b) -> (a -> c)
+f . g = \x -> f (g x)    
+#+end_src
+
+*All:* Every element of a list satisfies a given predicate.
+*Any:* Any element of a list satisfies a given predicate.
+#+begin_src haskell
+all :: (a -> Bool) -> [a] -> Bool
+all p xs = and [p x | x <- xs]
+
+any :: (a -> Bool) -> [a] -> Bool
+any p xs = or [p x | x <- xs]
+any (== ' ') "abc def" -- checks if there's any whitespace in the string.
+#+end_src
+
+*takeWhile:* takes an element of a list while the predicate is satisfied.
+#+begin_src haskell
+takeWhile :: (a -> Bool) -> [a] -> [a]
+takeWhile p [] = []
+takeWhile p (x:xs)
+  | p x       = x : takeWhile p xs
+  | otherwise = []
+takeWhile (/=  ' ') "abc def" -- returns "abc"
+#+end_src
+
+*dropWhile:* drops elements while the predicate is satisfied.
+#+begin_src haskell
+dropWhile :: (a -> Bool) -> [a] -> [a]
+dropWhile p [] = []
+dropWhile p (x:xs)
+  | p x        = dropWhile p xs
+  | otherwhise = x:Xs
+dropWhile (== ' ') "   abc" -- returns "abc"
+#+end_src
+
+Example: express `[f x | x <- xs, p x]` using map and filter.
+#+begin_src haskell
+map f (filter p xs)
+#+end_src
