@@ -1,0 +1,643 @@
+
+* Introduction
+
+Different kinds of structures are needed to organize different kinds of data.
+
+Examples: English dictionary, City map, cash books.
+
+*Definition.* A *data structure* is a way to store and organize data, so that it can be used efficiently.
+
+Aspects of Data Structures:
+
+1. *Mathematical/Logical models or Abstract Data Types (ADT)*: What are the features and operations that define a given data structure?
+
+2. *Implementation*: How are they defined in a language like C/C++?
+
+*Definition.* *Abstract data types* are entities that define data and operations, but no implementation.
+
+Examples of ADTs: arrays, linked list, stack, queue, tree, graph.
+
+* Arrays
+
+*Definition.* *Lists* are collection of objetcs of the same type.
+
+Lists as an ADT:
+
+- Store a given number of elements of a given data type (*static list*).
+
+- Write/modify element at a position.
+
+- Read element at a given position.
+
+E.g. arrays in C:
+
+#+begin_src C
+  int A[10];
+  int i, j;
+  A[i] = j
+  printf("%d", A[i]);
+#+end_src
+
+What if the list is dynamic, i.e., can grow whenever needed?
+
+*Dynamic list*:
+
+- Empty list if has size zero.
+
+- Insert elements.
+
+- Remove elements.
+
+- Count elements in the list.
+
+- Read/modify element at a position.
+
+- Specify data type.
+
+How to implement dynamic lists with arrays?
+
+#+begin_src C
+  #define MAXSIZE 100;
+  int A[MAXSIZE];
+  int end = -1; /* empty list */
+  insert(2);
+  insert(4);
+  insert(6);
+  insert(7);
+  insert(9);
+  insert(5,2); /* adds '5' to the position '2', moving everything else to the right */
+  remove(0);   /* removes the element at index zero and moves everything else to the left */
+#+end_src
+
+What happens when the list fills the whole array?
+
+When the array is full, create a new larger array (double the size), copying previous array into the new array. And free the memory for the previous array.
+
+What are the computational costs of this implementation?
+
+1. Access (read/write) at an index: constant time $\mathcal{O}(1)$.
+
+2. Insert: the time will be proportional to the size of the list $n$. I.e., $\mathcal{O}(n)$.
+
+3. Remove: the same as insert.
+
+An additional problem: is not memory efficient, occupying non-used space.
+
+* Linked List
+
+While an array is a large contiguous block of memory, linked lists don't need adjacent blocks of memory. How to next these blocks?
+
+Store an additional block of information with the address of the next block (also called *node*), which is called a *pointer* and the key with the value stored. We can use '0' to denote the end of the list. 
+
+#+begin_src c
+  struct Node {
+    int data;
+    struct Node* next;
+  };
+#+end_src
+
+Access of the head node gives us access to the whole list.
+
+Since the list must be "travelled" to find a given element, access will be proportional to the size of the list. I.e., $\mathcal{O}(n)$.
+
+Insert: creates a node with a pointer to the next element and rearrange the pointer of the previous element to point to it. Cost: $\mathcal{O}(n)$.
+
+Remove: $\mathcal{O}(n)$.
+
+Uses less memory than simple lists.
+
+** Array vs. Linked List
+
+What is the most frequent operation that I want to use?
+
+What is the size of the data?
+
+|                 | **Array**                                                                                                         | **Linked List**                                                     |
+|-----------------|-------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------|
+| **Access**      | O(1)                                                                                                              | O(n)                                                                |
+| **Memory**      | Fixed memory, may not be available as one large block                                                             | No unused memory, but extra memory for pointer variable             |
+| **Insert**      | a) At beginning - O(n)<br>b) At end - O(1) if array is not full or O(n) if array is full<br>c) At ith pos. - O(n) | a) At beginning - O(1)<br>b) At end - O(n)<br>c) At ith pos. - O(n) |
+| **Ease of use** | Easier                                                                                                            | More complicated (segmentation fault, memory leaks)                 |
+
+** Linked List: Implementation
+
+Node will be a data type with two fields containing the data and the next.
+
+Two operations:
+
+1. Insert a node into a linked list.
+
+2. Traverse the linked list
+
+#+begin_src c
+  #include <stdio.h>
+  #include <stdlib.h>
+
+  struct Node {
+    int data;
+    struct Node* next;
+  };
+
+  int main()
+  {
+      /* Pointer to the head node */
+      struct Node* A;
+      A = NULL; /* empty list */
+    
+      /* Inserting a node */
+      struct Node* temp = (struct Node*)malloc(sizeof(struct Node)); /* Malloc returns the address to the memory block */
+      (*temp).data = 2; /* is the same as 'temp->data = 2' */
+      (*temp).next = NULL;
+      A = temp;
+    
+      temp = (struct Node*)malloc(sizeof(struct Node));
+      temp->data = 4;
+      temp->next = NULL;
+    
+      struct Node* temp1 = A;
+      while(temp1->next != NULL) {
+          temp1 = temp1->next;
+      };
+      temp1->next = temp;
+
+      return 0;
+  }
+#+end_src
+
+#+begin_src cpp
+  #include <iostream>
+
+  using namespace std;
+
+  struct Node {
+      int data;
+      Node* next;
+  };
+
+  int main()
+  {
+    /* Pointer to the head node */
+    Node* A;
+    A = NULL; /* empty list */
+
+    /* Inserting a node */
+    Node* temp = new Node();
+    temp->data = 2;
+    temp->next = NULL;
+    A = temp;
+
+    temp = new Node();
+    temp->data = 4;
+    temp->next = NULL;
+
+    Node* temp1 = A;
+    while(temp1->next != NULL) {
+        temp1 = temp1->next;
+    };
+    temp1->next = temp;
+
+    return 0;
+  }
+#+end_src
+
+*** Inserting at the beginning
+
+#+begin_src c
+  #include <stdio.h>
+  #include <stdlib.h>
+
+  struct Node {
+    int data;
+    struct Node* next;
+  };
+
+  /* Pointer to the head node */
+  struct Node* head;
+
+  /* Inserts at the beginning */
+  void Insert(int x) { 
+    struct Node* temp = (struct Node*)malloc(sizeof(struct Node)); // Malloc returns the address to the memory block
+    (*temp).data = x; // syntatic sugar: 'temp->data = 2'
+    (*temp).next = NULL;
+    if(head != NULL) temp->next = head;
+    head = temp;
+  };
+
+  void PrintList() {
+    struct Node* temp = head;
+    printf("List is:");
+    while(temp != NULL) {
+      printf(" %d", temp->data);
+      temp = temp->next;
+    };
+    printf("\n");
+  };
+
+  int main()
+  {
+    head = NULL; // empty list
+
+    /* Inserting nodes */
+    printf("How many numbers?\n");
+    int n, i, x;
+    scanf("%d", &n);
+    for(i = 0; i < n; i++) {
+      printf("Enter the number \n");
+      scanf("%d", &x);
+      Insert(x);
+      PrintList();
+    }
+
+    return 0;
+  }
+#+end_src
+
+#+begin_src cpp
+  #include <iostream>
+
+  using namespace std;
+
+  struct Node {
+    int data;
+    Node* next;
+  };
+
+  void PrintList(Node* head) {
+    printf("List is:");
+    while(head != NULL) {
+      printf(" %d", head->data);
+      head = head->next;
+    };
+    printf("\n");
+  }
+
+  void BeginningInsert(Node** head, int x) {
+    Node* temp = new Node();
+    temp->data = x;
+    temp->next = NULL;
+    if(*head != NULL) temp->next = *head;
+    ,*head = temp;
+  }
+
+  int main()
+  {
+    Node* head;  // Pointer to the head node
+    head = NULL; // empty list
+
+    // Insert at Beginning
+    printf("How many numbers?\n");
+    int n, i, x;
+    scanf("%d", &n);
+    for(i = 0; i < n; i++) {
+      printf("Enter the number \n");
+      scanf("%d", &x);
+      BeginningInsert(&head, x);
+      PrintList(head);
+    };
+
+    return 0;
+  }
+#+end_src
+
+*** Inserting a node at nth position
+
+Application's memory:
+
+1. Heap: can be called during runtime (e.g. when calling malloc).
+
+2. Stack: all the information about function call executions and local variables.
+
+3. Static/Global.
+
+4. Code (Text).
+
+#+begin_src c
+  #include<stdlib.h>
+  #include<stdio.h>
+
+  struct Node {
+    int data;
+    struct Node* next;
+  };
+
+  struct Node* head;
+
+  void Insert(int data, int n) {
+    // Assume n to be a valid position
+    struct Node* temp1 = (struct Node*)malloc(sizeof(struct Node*));
+    temp1->data = data;
+    temp1->next = NULL;
+    if(n == 1) {
+      temp1->next = head;
+      head = temp1;
+      return;
+    };
+    struct Node* temp2 = head;
+    int i;
+    for(i = 0; i < n-2; i++) {
+      temp2 = temp2->next;
+    };
+    temp1->next = temp2->next;
+    temp2->next = temp1;
+  }
+
+  void PrintList() {
+    printf("List is:");
+    while(head != NULL) {
+      printf(" %d", head->data);
+      head = head->next;
+    };
+    printf("\n");
+  }
+
+  int main() {
+    head = NULL; // empty list
+    Insert(2,1); // List: 2
+    Insert(3,2); // List: 2, 3
+    Insert(4,1); // List: 4, 2, 3
+    Insert(5,2); // List: 4, 5, 2, 3
+    PrintList();
+  }
+#+end_src
+
+*** Delete a node at nth position
+
+1. Fix the links
+
+2. Free the memory
+
+#+begin_src c
+  #include<stdlib.h>
+  #include<stdio.h>
+
+  struct Node {
+      int data;
+      struct Node* next;
+  };
+
+  struct Node* head;
+
+  void Insert(int data) {
+      struct Node* temp = (struct Node*)malloc(sizeof(struct Node));
+      (*temp).data = data;
+      (*temp).next = NULL;
+    
+      if(head == NULL)
+        head = temp;
+      else {
+        struct Node* temp1 = head;
+        while(temp1->next != NULL) {
+          temp1 = temp1->next;
+        };
+        temp1->next = temp;
+      }
+  }
+    
+  void PrintList() {
+      printf("List is:");
+      while(head != NULL) {
+        printf(" %d", head->data);
+        head = head->next;
+      };
+      printf("\n");
+  }
+
+  void Delete(int n) {
+      struct Node* temp1 = head;
+      if(n == 1) {
+        head = temp1->next;
+        free(temp1);
+        return;
+      }
+      int i;
+      for(i = 0; i < n-2; i++) {
+        temp1 = temp1->next; // Points to (n-1)th Node
+      }
+      struct Node* temp2 = temp1->next; // nth Node
+      temp1->next = temp2->next; // (n+1)th Node
+      free(temp2); // Deallocates space or `delete temp2` in C++
+  }
+
+  int main() {
+      head = NULL; // empty list
+      Insert(2); // List: 2
+      Insert(4); // List: 2, 4
+      Insert(6); // List: 2, 4, 6
+      Insert(5); // List: 2, 4, 6, 5
+      PrintList();
+    
+      int n;
+      printf("Enter a position\n");
+      scanf("%d", &n);
+      Delete(n);
+      PrintList();
+      return 0;
+  }
+#+end_src
+
+*** Reverse a linked list: Iterative solution
+
+Given a linked list, a reversed list looks like this:
+
+The head points to the last element, all the arrows are inverted, and the first element points to NULL.
+
+The iterative solution is the following algorithm:
+
+Traverse the list, adjusting the link to point to the previous node. At the end, reassign the head.
+
+#+begin_src c
+  #include<stdlib.h>
+  #include<stdio.h>
+
+  struct Node {
+    int data;
+    struct Node* next;
+  };
+
+  struct Node* Insert(struct Node* head, int data) {
+    struct Node* temp = (struct Node*)malloc(sizeof(struct Node));
+    (*temp).data = data;
+    (*temp).next = NULL;
+
+    if(head == NULL)
+      head = temp;
+    else {
+      struct Node* temp1 = head;
+      while(temp1->next != NULL) {
+        temp1 = temp1->next;
+      };
+      temp1->next = temp;
+    }
+    return head;
+  }
+
+  void PrintList(struct Node* head) {
+    printf("List is:");
+    while(head != NULL) {
+      printf(" %d", head->data);
+      head = head->next;
+    };
+    printf("\n");
+  }
+
+  struct Node* Reverse(struct Node* head) {
+      struct Node *current, *prev, *next;
+      current = head;
+      prev = NULL;
+      // Traversing the list
+      while(current != NULL) {
+        next = current->next; // next Node
+        current->next = prev; // previous Node
+        prev = current;
+        current = next;
+      }
+      // Adjusting the variable head
+      head = prev;
+      return head;
+  }
+
+  int main() {
+      struct Node* head = NULL;
+      head = Insert(head,2);
+      head = Insert(head,4);
+      head = Insert(head,6);
+      head = Insert(head,8);
+      PrintList(head);
+      head = Reverse(head);
+      PrintList(head);
+  }
+#+end_src
+
+*** Print linked list using recursion
+
+#+begin_src c
+  #include<stdlib.h>
+  #include<stdio.h>
+
+  struct Node {
+      int data;
+      struct Node* next;
+  };
+
+  struct Node* Insert(struct Node* head, int data) {
+      struct Node* temp = (struct Node*)malloc(sizeof(struct Node));
+      (*temp).data = data;
+      (*temp).next = NULL;
+    
+      if(head == NULL)
+        head = temp;
+      else {
+        struct Node* temp1 = head;
+        while(temp1->next != NULL) {
+          temp1 = temp1->next;
+        };
+        temp1->next = temp;
+      }
+      return head;
+  }
+
+  void Print(struct Node* head) {
+    if(head == NULL) {
+        printf("\n");
+        return;
+    }
+    printf("%d ", head->data);
+    Print(head->next);
+  }
+
+  void ReversePrint(struct Node* head) {
+    if(head == NULL) {
+        printf("\n");
+        return;
+    }
+    ReversePrint(head->next);
+    printf("%d ", head->data);
+  }
+
+  int main() {
+      struct Node* head = NULL;
+      head = Insert(head,2);
+      head = Insert(head,4);
+      head = Insert(head,6);
+      head = Insert(head,8);
+      Print(head);
+      ReversePrint(head);
+  }
+#+end_src
+
+*** Recursive Reverse
+
+#+begin_src c
+  #include<stdlib.h>
+  #include<stdio.h>
+
+  struct Node {
+      int data;
+      struct Node* next;
+  };
+
+  struct Node* Insert(struct Node* head, int data) {
+      struct Node* temp = (struct Node*)malloc(sizeof(struct Node));
+      (*temp).data = data;
+      (*temp).next = NULL;
+    
+      if(head == NULL)
+        head = temp;
+      else {
+        struct Node* temp1 = head;
+        while(temp1->next != NULL) {
+          temp1 = temp1->next;
+        };
+        temp1->next = temp;
+      }
+      return head;
+  }
+
+  void Print(struct Node* head) {
+    if(head == NULL) {
+        printf("\n");
+        return;
+    }
+    printf("%d ", head->data);
+    Print(head->next);
+  }
+
+  void ReversePrint(struct Node* head) {
+    if(head == NULL) {
+        printf("\n");
+        return;
+    }
+    ReversePrint(head->next);
+    printf("%d ", head->data);
+  }
+
+  struct Node* Reverse(struct Node* head, struct Node* p) {
+      if(p->next == NULL) {
+        head = p;
+        return head;
+      }
+      head = Reverse(head, p->next);
+      struct Node* q = p->next;
+      q->next = p;
+      p->next = NULL;
+      return head;
+  }
+
+  int main() {
+      struct Node* head = NULL;
+      head = Insert(head,2);
+      head = Insert(head,4);
+      head = Insert(head,6);
+      head = Insert(head,8);
+      Print(head);
+    
+      head = Reverse(head, head);
+      Print(head);
+  }
+#+end_src
+
+** Doubly Linked List
+
+#+begin_src c
+
+#+end_src
