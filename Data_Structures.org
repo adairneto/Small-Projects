@@ -638,6 +638,394 @@ Traverse the list, adjusting the link to point to the previous node. At the end,
 
 ** Doubly Linked List
 
+The idea is to add a third entry into the data structure, containing the address of the previous item.
+
 #+begin_src c
 
+  #include<stdio.h>
+  #include<stdlib.h>
+
+  struct Node {
+    int data;
+    struct Node* next;
+    struct Node* prev;
+  };
+
+  struct Node* head; // pointer to head node
+
+  struct Node* GetNewNode(int x) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->data = x; // equal to (*temp).data
+    newNode->prev = NULL;
+    newNode->next = NULL;
+    return &newNode;
+  }
+
+  void InsertAtHead(int x) {
+    struct Node* newNode = GetNewNode(x);
+    if(head == NULL) {
+      head = newNode;
+      return;
+    }
+    head->prev = newNode;
+    newNode->next = head;
+    head = newNode;
+  }
+
+  void Print() {
+    struct Node* temp = head;
+    printf("Forward: ");
+    while(temp != NULL) {
+      printf("%d ", temp->data);
+      temp = temp->next;
+    }
+    printf("\n");
+  }
+
+  void ReversePrint() {
+    struct Node* temp = head;
+    if(temp == NULL) return; // empty list
+    // Go to the last node
+    while(temp->next != NULL) {
+      temp = temp->next;
+    }
+    // Travelling back and printing
+    printf("Reverse: ");
+    while(temp != NULL) {
+      printf("%d ", temp->data);
+      temp = temp->prev;
+    }
+    printf("\n");
+  }
+
+  int main()
+  {
+    head = NULL;
+    InsertAtHead(2); Print(); ReversePrint();
+    InsertAtHead(4); Print(); ReversePrint();
+    InsertAtHead(6); Print(); ReversePrint();
+  }
+
 #+end_src
+
+- Advantage: easier to access items.
+
+- Disadvantage: extra memory for pointer to previous node (from 8 bytes to 12 bytes).
+
+* Stacks
+
+We'll talk of Stacks only as an Abstract Data Type.
+
+E.g. plates, Hanoi tower, pack of tennis balls.
+
+The constraint is that only the top of the stack is accessible. That's why it's called `last-in-first-out'.
+
+*Stack:* A list with the restriction that insertion and deletion can be performed only from one end, called the top.
+
+*Operations:*
+
+1. Push(x): inserts x;
+2. Pop(): removes the most recent item;
+3. Top(): returns the element at the top;
+4. IsEmpty().
+
+All operations in constant time $\mathcal{O}(1)$.
+
+*Applications:*
+
+- Function calls / recursion;
+- Undo in an editor;
+- Balanced parentheses.
+
+** Array Implementation
+
+#+begin_src c
+
+  #include<stdio.h>
+  #include<stdbool.h>
+  #define MAX_SIZE 101
+  int A[MAX_SIZE];
+  int top = -1; // empty stack
+
+  void Push(int x) {
+    if(top == MAX_SIZE -1) {
+      printf("Error: stack overflow\n");
+      return;
+    }
+    A[++top] = x;
+  }
+
+  voi Pop() {
+    if(top == -1) {
+      printf("Error: no element to pop\n");
+      return;
+    }
+    top--;
+  }
+
+  int Top() {
+    return A[top];
+  }
+
+  bool IsEmpty() {
+    if(top == -1) 
+      return true;
+    else
+      return false;
+  }
+
+  void Print() {
+    int i;
+    printf("Stack: ");
+    for(i = 0; i<=top; i++)
+      printf("%d ", A[i]);
+    printf("\n");
+  }
+
+  int main() {
+    Push(2); Print();
+    Push(5); Print();
+    Push(10); Print();
+    Pop(); Print();
+    Push(12); Print();
+  }
+
+#+end_src
+
+** Linked List Implementation
+
+Insert/delete at the tail: O(n)
+Insert/delete at the beginning: O(1)
+Other operations: O(1)
+
+#+begin_src c
+
+  struct Node {
+    int data;
+    struct Node* link;
+  };
+
+  struct Node* top = NULL;
+
+  void Push(int x) {
+    struct Node* temp = (struct Node*)malloc(sizeof(struct Node*));
+    temp->data = x;
+    temp->link = top;
+    top = temp;
+  };
+
+  void Pop() {
+    struct Node* temp;
+    if(top == NULL) return;
+    temp = top;
+    top = top->link;
+    free(temp);
+  };
+  
+#+end_src
+
+** Using Stack to Reverse
+
+#+begin_src cpp
+
+  #include<iostream>
+  #include<stack>
+  using namespace std;
+
+  void Reverse(char *C, int n) {
+    stack<char> S;
+    for(int i=0; i<n; i++) {
+      S.push(C[i]);
+    }
+    for(int i = 0; i<n; i++) {
+      C[i] = S.top();
+      S.pop();
+    }
+  }
+
+  int main() {
+    char C[51];
+    printf("Enter a string: ");
+    gets(C);
+    Reverse(C, strlen(C));
+    printf("Output = %s", C);
+  }
+
+#+end_src
+
+Time complexity: O(n)
+Space complexity: O(n)
+
+** Check for balanced parentheses
+
+Idea:
+1. Scan from left to right;
+2. If opening symbol, add it to a list;
+3. If closing symbol, remove last opening symbol in list;
+4. Should finish with an empty list.
+
+Pseudocode:
+#+begin_src c
+
+  CheckBalancedParenthesis(exp) {
+    n <- length(exp);
+    create stack S;
+    for i<-0 to n-1 {
+        if exp[i] is '(' or '{' or '['
+          Push(exp[i])
+        else if exp[i] is ')' or '}' or ']'
+          if (S is empty) return false
+          else
+            Pop()
+    }
+  }
+  
+#+end_src
+
+* Queues
+
+** Queue ADT
+
+FIFO: First-In-First-Out
+
+List or collection with the restriction that insertion can be performed at one end (tail) and deletion can be performed at the other end (head).
+
+Operations:
+1. Enqueue(x) or Push(x);
+2. Dequeue() or Pop();
+3. Front() or Peek();
+4. IsEmpty().
+
+All operations in constant time O(1).
+
+Example of usage (scenario): only one request processed at the time. E.g. printers, CPUs.
+
+** Array Implementation 
+
+#+begin_src c
+
+  #include<stdio.h>
+  #include<stdbool.h>
+  #define MAX_SIZE 101
+  int A[MAX_SIZE];
+  int front = -1; // empty queue
+  int rear = -1; // empty queue
+
+  void Enqueue(int x) {
+    if(rear+1 == front) {
+      return;
+    }
+    else if(IsEmpty()) {
+      rear = 0;
+      front = rear;
+    }
+    else {
+      rear++;
+    }
+    A[rear] = x;
+  }
+
+  void Dequeue() {
+    if(IsEmpty()) {
+      return;
+    }
+    else if(front == rear) {
+      rear = -1;
+      front = rear;
+    }
+    else {
+      front++;
+  }
+
+  int Front() {
+    return A[front];
+  }
+
+  bool IsEmpty() {
+    if(top == -1 && rear == -1) 
+      return true;
+    else
+      return false;
+  }
+
+  void Print() {
+    int i;
+    printf("Queue: ");
+    for(i = front; i<=rear; i++)
+      printf("%d ", A[i]);
+    printf("\n");
+  }
+
+  int main() {
+    Enqueue(7);
+    Enqueue(3);
+    Enqueue(1);
+    Enqueue(9);
+    Print();
+    IsEmpty();
+    Dequeue();
+    Front();
+  }
+
+#+end_src
+
+Option: implement cyclical interpretation. Hint: use addresses modulo length of the list.
+
+** Linked List Implementation
+
+#+begin_src c
+  #include<stdlib.h>
+  #include<stdio.h>
+
+  struct Node {
+      int data;
+      struct Node* next;
+  };
+  
+  struct Node* front = NULL;
+  struct Node* rear = NULL;
+
+  void Enqueue(int x) {
+    struct Node* temp = (struct Node*)malloc(sizeof(struct Node*));
+    temp->data = x;
+    temp->next = NULL;
+    if(front == NULL && rear == NULL) {
+      front = rear = temp;
+      return;
+    }
+    rear-> next = temp;
+    rear = temp;
+  }
+
+  void Dequeue() {
+    struct Node* temp = front;
+    if(front == NULL) return;
+    if(front == rear) {
+      front = rear = NULL;
+    }
+    else {
+      front = front->next;
+    }
+    free(temp);
+  }
+  
+  void Print() {
+    printf("List is:");
+    while(front != NULL) {
+      printf(" %d", front->data);
+      front = front->next;
+    };
+    printf("\n");
+  }
+  
+  int main() {
+      Enqueue(2);
+      Enqueue(4);
+      Enqueue(6);
+      Enqueue(8);
+      Dequeue();
+      Print();
+  }
+#+end_src
+
+* Trees
