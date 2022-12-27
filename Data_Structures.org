@@ -1492,14 +1492,126 @@ Case 2: If the node has no right subtree, go to the nearest ancestor for which t
 
 Time complexity: $\mathcal{O}(h)$.
 
-#+begin_src c
-
-#+end_src
-
-#+begin_src c
-
-#+end_src
-
 * Graphs
 
+** Introduction
+
+*Definition (Graph).* A *graph* $G$ is an ordered pair of a set $V$ of *vertices* and a set $E$ of *edges*. Notation: $G = (V,E)$.
+
+How to represent an edge?
+
+Graphs can be either *directed* or *undirected*.
+
+For directed graphs, we can represent an edge as $(u,v)$, where $u$ is the start point and $v$ is the end point.
+
+For undirected graphs, we can represent an edge as $\{ u, v \}$.
+
+Applications:
+
+1. Social Network: User as nodes and friendship as an edge.
+
+2. The web: Pages as nodes and links as edges (directed graph). Web crawling is graph traversal.
+
+3. Road network.
+
+Graphs can be *weighted* or *unweighted*.
+
+A *self-loop* is an edge that links a node to itself.
+
+A *multiedge* or *parallel edge* occurs when there are more than one edge between two given nodes.
+
+If there are no self-loops or multiedges, the graph is called a *simple graph*.
+
+Notice that if $|V| = n$, then $0 \leq |E| \leq n(n-1)$ if directed or $0 \leq |E| \leq \frac{n(n-1)}{2}$ if undirected.
+
+A graph is called
+
+1. *Sparse* if $|E| << |V|^2$.
+2. *Dense* if $|E| \approx |V|^2$.
+
+A *walk* is a sequence of vertices where each adjacent pair is connected by an edge. A walk is called a *simple path* if no vertices are repeated. A *trail* is a walk in which no edges are repeated.
+
+A graph is called *strongly connected* if there is a path from any vertex to any other vertex.
+
+*Closed walk*: starts and ends at the same vertex.
+
+*Simple cycle*: no repetition other than start/end.
+
+An *acyclic graph* is a graph with no cycle. E.g. a tree is an undirected acyclic graph.
+
+In the rest of this section, we'll focus on how to represent graphs.
+
+** Graph Representation
+
+[[202212261336_graph_representations.png]]
+
+*** Edge List
+
+#+begin_src c
+
+  struct Edge {
+    int startVertex;
+    int endVertex;
+    int weight; // For weighted graphs
+  }
+
+#+end_src
+
+#+begin_src cpp
+
+  class Edge {
+    int startVertex;
+    int endVertex;
+    int weight; // For weighted graphs
+  }
+
+  string vertex_list[MAX_SIZE];
+  Edge edge_list[MAX_SIZE];
+
+#+end_src
+
+Time complexity: $\mathcal{O}(|E|)$ for finding adjacent nodes and checking if nodes are connected;
+
+Space complexity: $\mathcal{O}(|V|+|E|)$.
+
+*** Adjacency Matrix
+
+\[
+  A_{ij} = \begin{cases} 1, & ~\text{there exists an edge from $i$ to $j$} \\ 0, & ~\text{otherwise} \end{cases}
+\]
+
+For an undirected graph, the matrix is symmetric.
+
+For finding adjacent nodes, the time cost is $\mathcal{O}(|V|)$.
+
+For finding if two nodes are connected, the time cost is $\mathcal{O}(1)$.
+
+For weighted graphs, the matrix entry can be the weight and use a default value for $i = j$.
+
+However, the space cost is $\mathcal{O}(|V|^2)$.
+
+Good if graph is dense or $|V|^2$ is too small.
+
+*** Adjacency List 
+
+#+begin_src c
+
+  struct Node {
+    int data;
+    int weight;
+    struct Node* next;
+  }
+
+  struct Node *A[8];
+
+#+end_src
+
+Space complexity: $\mathcal{O}(|E|)$.
+
+Time complexity for finding if two nodes are connected: $\mathcal{O}(|V|)$.
+
+Time complexity for finding adjacent nodes: $\mathcal{O}(|V|)$.
+
 * Hash Tables
+
+[[202212271428_hash_table.png]]
