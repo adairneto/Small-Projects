@@ -2,7 +2,6 @@
 
 import string
 import os
-import subprocess
 
 # Creates and stores the text into a .tex file
 def storeTeX(title, new_text):
@@ -51,21 +50,30 @@ def recSearch(title, new_text, rec_text):
         return recSearch(title, new_text, rec_text[1:])
 
 # Convert .tex to .md
-def texToMd():
+def texToMd(filename):
     for files in os.listdir():
         file_title = files[:-4]
         if files[-4:] == ".tex" and files != filename:
-            print(files)
+            print("Saving", files)
             new_file_title = file_title+".md"
             cmd = "pandoc -f latex -t markdown '"+files+"' -o '"+new_file_title+"'"
             os.system(cmd)
 
-filename = "02.tex"
-with open(filename, 'r') as file:
-    text = file.readlines()
-    functional = True 
-    if functional:
-        recSearch("Introduction", [], text[2:])
-    else:
-        sectionSearch(text)
-    texToMd()
+def main():
+    print("Welcome to TeX Section Breaker!")
+    filename = input("Please, input your filename (.tex): ")
+    with open(filename, 'r') as file:
+        text = file.readlines()
+        functional = True 
+        if functional:
+            recSearch("Introduction", [], text[2:])
+        else:
+            sectionSearch(text)
+        convertMd = input("Do you also want to convert to .md? \n'[Y]': Yes \n'N': No \n") or "Y"
+        if convertMd == "Y":
+            print()
+            texToMd(filename)
+        print("\nThat's all! Thanks for using TeX Section Breaker!")
+
+if __name__ == "__main__":
+    main()
